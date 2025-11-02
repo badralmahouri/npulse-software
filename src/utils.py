@@ -1,11 +1,11 @@
-# File I/O helpers (e.g., reading/writing CSV, JSON)
-# Data splitting (train/test)
-# Seed setting for reproducibility
-# Timer/context manager utilities
-# Metric calculation helpers
 
-def load_data(filename):
+
+def save(output_path, df):
     """
-    loads the data .csv file
+    Args:
+        output_path: where it is saved.
+        df: DataFrame
     """
-    return 
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(output_path, index=False)
+    print(f"Saved: {output_path.name}, shape={df.shape}")
