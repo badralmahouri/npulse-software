@@ -5,36 +5,18 @@ This module handles the complete preprocessing pipeline for EMG sensor data,
 including data cleaning, noise removal, normalization, and baseline correction.
 """
 
-from pathlib import Path
-from typing import List, Optional
+#=====================================================
+# there is a python package that automates the prepocessing.
+#=====================================================
 
 import numpy as np
 import pandas as pd
-from scipy.signal import butter, filtfilt
+from scipy.signal import butter, sosfiltfilt
 
 import config
 from utils import save
 
-# Constants
-SENSOR_CHANNELS = ['Channel1', 'Channel2', 'Channel3']
-BANDPASS_LOWCUT = 0.5   # Hz - removes low-frequency drift
-BANDPASS_HIGHCUT = 20.0 # Hz - removes high-frequency noise
-FILTER_ORDER = 4        # Butterworth filter order
 
-
-def _calculate_sampling_rate(timestamps) -> float:
-    """
-    Calculate sampling rate from timestamp series.
-    
-    Args:
-        timestamps (pd.Series): Series of timestamp values
-        
-    Returns:
-        Sampling rate in Hz
-    """
-    time_diffs = timestamps.diff() #.dropna()
-    sampling_rate = 1.0 / time_diffs.mean()
-    return sampling_rate
 
 
 def remove_invalid_rows(df):
@@ -73,7 +55,7 @@ def consolidate_action_columns(df):
     return df
 
 
-def trim_action_transitions(df, trim_seconds):
+def trim_action_transitions(df, trim_seconds=config.ACTION_TRIM_SECONDS):
     """
     Remove initial seconds from each action segment to eliminate transition artifacts.
     
@@ -103,7 +85,7 @@ def trim_action_transitions(df, trim_seconds):
     return df_trimmed
 
 
-def bandpass_filter(df, lowcut = BANDPASS_LOWCUT, highcut = BANDPASS_HIGHCUT, order = FILTER_ORDER):
+def bandpass_filter(df, lowcut=config.BANDPASS_LOWCUT, highcut=config.BANDPASS_HIGHCUT, order=config.FILTER_ORDER, sampling_rate=config.SAMPLING_RATE):
     """
     Apply Butterworth bandpass filter to sensor channels.
     
@@ -121,9 +103,6 @@ def bandpass_filter(df, lowcut = BANDPASS_LOWCUT, highcut = BANDPASS_HIGHCUT, or
     """
     df = df.copy()
     
-    # Calculate sampling rate
-    sampling_rate = _calculate_sampling_rate(df['Timestamp'])
-    print(f"sampling rate: {sampling_rate:.2f} Hz")
     
     # Design Butterworth bandpass filter
     nyquist = 0.5 * sampling_rate
@@ -135,12 +114,13 @@ def bandpass_filter(df, lowcut = BANDPASS_LOWCUT, highcut = BANDPASS_HIGHCUT, or
         high_normalized = 0.99
         #suppress this if, if high cut if well under 1.
     
-    b, a = butter(order, [low_normalized, high_normalized], btype='band')
+    # Use second-order sections for numerical stability
+    sos = butter(order, [low_normalized, high_normalized], btype='band', output='sos')
     
-    # Apply zero-phase filter to each channel
-    for channel in SENSOR_CHANNELS:
+    # Apply zero-phase filter to each channel using SOS
+    for channel in config.SENSOR_CHANNELS:
         if channel in df.columns:
-            df[channel] = filtfilt(b, a, df[channel].values)
+            df[channel] = sosfiltfilt(sos, df[channel].values)
 
     return df
 
@@ -165,7 +145,7 @@ def bandpass_filter(df, lowcut = BANDPASS_LOWCUT, highcut = BANDPASS_HIGHCUT, or
 #     return df
 
 
-def standardize_channels(df: pd.DataFrame) -> pd.DataFrame:
+def standardize_channels(df):
     """
     Standardize sensor channels to zero mean and unit variance (z-score normalization).
     
@@ -177,7 +157,7 @@ def standardize_channels(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
     
-    for channel in SENSOR_CHANNELS:
+    for channel in config.SENSOR_CHANNELS:
         if channel in df.columns:
             channel_mean = df[channel].mean()
             channel_std = df[channel].std()
@@ -208,7 +188,7 @@ def combine_data():
     return combined_df
 
 
-def preprocess() -> None:
+def preprocess():
     """
     Execute complete preprocessing pipeline.
     
@@ -233,19 +213,18 @@ def preprocess() -> None:
             clean_path = config.CLEAN_DIR / file_name
 
             df = pd.read_csv(raw_path)
-            remove_invalid_rows(df)
-            consolidate_action_columns(df)
-            trim_action_transitions(df)
+            df = remove_invalid_rows(df)
+            df = consolidate_action_columns(df)
+            df = trim_action_transitions(df)
             save(clean_path, df)
     
     if config.PREPROCESSING:
         print(f"Preprocessing")
-        preproc_path = config.PROCESSED_DIR / "prepoc_data"
 
         df_all = combine_data()
         df_all = bandpass_filter(df_all)
         #df = remove_dc_offset(df) - Unless you wanna check the effect of only centering 
         df_all = standardize_channels(df_all)
-        save(df_all, preproc_path)
+        save(config.PREPROC_DATA_PATH, df_all)
     
     
