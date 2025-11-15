@@ -22,6 +22,7 @@ def main():
     # Stage 1: Preprocessing
     if config.CLEAN or config.PREPROCESSING:
         preprocessing.preprocess()
+        
     
     # Stage 2: Feature Engineering
     if config.FEATURE_ENGINEERING:
