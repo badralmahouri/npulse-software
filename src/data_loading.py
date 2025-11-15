@@ -3,6 +3,7 @@ import re
 import mne
 import pandas as pd
 import numpy as np
+import pyxdf
 
 def find_bids_emg_files(bids_root, subject, session=None, task=None, run=None):
     """
