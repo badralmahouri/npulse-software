@@ -10,7 +10,7 @@ Pipeline stages:
 
 
 import config
-import preprocessing
+import preprocessing_new
 import feature_engineering 
 import tune
 import train
@@ -21,9 +21,8 @@ def main():
     
     # Stage 1: Preprocessing
     if config.CLEAN or config.PREPROCESSING:
-        preprocessing.preprocess()
+        preprocessing_new.preprocess()
         
-    
     # Stage 2: Feature Engineering
     if config.FEATURE_ENGINEERING:
         feature_engineering.create_features()

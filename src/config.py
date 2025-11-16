@@ -10,29 +10,31 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent.parent
 
 # Data paths
-DATA_DIR = BASE_DIR / 'data' / 'badr-data'
-RAW_DIR = DATA_DIR / 'raw'
-CLEAN_DIR = DATA_DIR / 'clean'
-PROCESSED_DIR = DATA_DIR / 'proc'  # For further processed data
-FEATURES_DIR = DATA_DIR / 'features'  # For engineered features
+DATA_DIR = BASE_DIR / 'data' # / 'badr-data'
+
+# RAW_DIR = DATA_DIR / 'raw' # where to put the raw data
+# CLEAN_DIR = DATA_DIR / 'clean'
+# PROCESSED_DIR = DATA_DIR / 'proc'  # For further processed data
+# FEATURES_DIR = DATA_DIR / 'features'  # For engineered features
 
 #OUTPUTS_DIR = BASE_DIR / 'outputs' To save figures, hyperparams, 
 
-PREPROC_DATA_PATH = os.path.join(PROCESSED_DIR, "WS_R_ch3_seq4.csv")
+RAW_DATA_PATH = os.path.join(BASE_DIR, "raw.csv")
+PREPROC_DATA_PATH = os.path.join(BASE_DIR, "preproc.csv")
 
 # Ensure directories exist
-for dir_path in [CLEAN_DIR, PROCESSED_DIR, FEATURES_DIR]: #, OUTPUTS_DIR:
-    dir_path.mkdir(parents=True, exist_ok=True)
+# for dir_path in [CLEAN_DIR, PROCESSED_DIR, FEATURES_DIR]: #, OUTPUTS_DIR:
+#     dir_path.mkdir(parents=True, exist_ok=True)
 
 # Raw and cleaned data files
-FILES = [
-    'WS_R_ch3_seq4_250523175746.csv',
-    'WS_R_ch3_seq4_250523180012.csv',
-    'WS_R_ch3_seq4_250523180128.csv',
-    'WS_R_ch3_seq4_250523180233.csv',
-    'WS_R_ch3_seq4_250523180349.csv',
-    'WS_R_ch3_seq4_250523180502.csv'
-]
+# FILES = [
+#     'WS_R_ch3_seq4_250523175746.csv',
+#     'WS_R_ch3_seq4_250523180012.csv',
+#     'WS_R_ch3_seq4_250523180128.csv',
+#     'WS_R_ch3_seq4_250523180233.csv',
+#     'WS_R_ch3_seq4_250523180349.csv',
+#     'WS_R_ch3_seq4_250523180502.csv'
+# ]
 
 
 #=====================================================
@@ -41,7 +43,7 @@ FILES = [
 
 CLEAN = True           
 PREPROCESSING = True   # Run preprocessing 
-FEATURE_ENGINEERING = False  # Run feature engineering
+FEATURE_ENGINEERING = True  # Run feature engineering
 TUNING = False    # Run hyperparameter tuning
 TRAIN_MODEL = False     # Train final model and test it 
 
